@@ -1,9 +1,11 @@
 const express = require('express');
 const app = express();
 const genres = require('./routes/genres');
+const customers = require('./routes/customers');
 const mongoose = require('mongoose');
 app.use(express.json());
 app.use('/api/genres', genres);
+app.use('/api/customers', customers);
 mongoose.connect('mongodb://localhost/Cinema-CRM', {useNewUrlParser: true})
 .then(() => {
     console.log('Connected to MongoDB.....')
