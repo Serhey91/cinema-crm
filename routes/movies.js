@@ -3,11 +3,11 @@ const router = express.Router();
 const {Movie, movieSchema, validateMovie} = require('../models/movie');
 const {Genre} = require('../models/genre');
 router.get('/', async (req,res) => {
-    const movies = await Movie.find().sort('title');
+    const movies = await Movie.find().sort('title').populate('genre', 'name -_id');
     if(movies) return res.status(200).send(movies)
 })
 router.get('/:id', async (req, res) => {
-    const result = await Movie.findById(req.params.id);
+    const result = await Movie.findById(req.params.id).populate('genre', 'name');
     if(result) return res.status(200).send(result)
     else return res.status(404).send('No movie found with such id');
 })

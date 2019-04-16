@@ -7,6 +7,8 @@ const rentals = require('./routes/rentals');
 
 const mongoose = require('mongoose');
 app.use(express.json());
+
+
 app.use('/api/genres', genres);
 app.use('/api/customers', customers);
 app.use('/api/movies', movies);
