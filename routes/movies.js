@@ -12,26 +12,21 @@ router.get('/:id', async (req, res) => {
     else return res.status(404).send('No movie found with such id');
 })
 router.post('/', async (req, res) => {
-    try {
-        const {error} = validateMovie(req.body);
-        if(error) return res.status(404).send(error.details[0].message);
-        const genre = await Genre.findById(req.body.genre);
-        if(!genre) return res.status(404).send('There is no genre with such id');
-        
-        const newMovie =  new Movie(
-            {
-                title: req.body.title,
-                numberInStock: req.body.numberInStock,
-                dailyRentalRate: req.body.dailyRentalRate,
-                genre: req.body.genre
-            }
-        )
-        const result = await newMovie.save();
-        if(result) return res.status(201).send(newMovie);
-        } 
-        catch(e) {
-            return res.status(404).send(e.message);
+    const {error} = validateMovie(req.body);
+    if(error) return res.status(404).send(error.details[0].message);
+    const genre = await Genre.findById(req.body.genre);
+    if(!genre) return res.status(404).send('There is no genre with such id');
+    
+    const newMovie =  new Movie(
+        {
+            title: req.body.title,
+            numberInStock: req.body.numberInStock,
+            dailyRentalRate: req.body.dailyRentalRate,
+            genre: req.body.genre
         }
+    )
+    await newMovie.save();
+    return res.status(201).send(newMovie);
 })
 router.put('/:id', async (req, res) => {
     try

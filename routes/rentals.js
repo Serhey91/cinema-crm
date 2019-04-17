@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const Fawn = require('fawn');
+const mongoose = require('mongoose');
 const { Movie } = require('../models/movie')
 const { Customer } = require('../models/customer')
 const { Rental, validateRental } = require('../models/rental');
+
+Fawn.init(mongoose);
+
 router.get('/',  (req, res) => {
     //like in old version
     Rental.find()
@@ -13,25 +18,14 @@ router.get('/',  (req, res) => {
 })
 
 router.get('/:id',  (req,res) => {
-    // Rental.findById(req.params.id)
-    // if(result) {
-    //     let rental;
-    //     const customer = await Customer.findById(result.customer);
-    //     const movie = await Movie.findById(result.movie).populate('-title');
-    //     result.customer = customer;
-    //     result.movie = movie;
-    //     return res.status(200).send(result)
-    // }
-    // else return res.status(404).send('No rental found with such id');
     Rental.findById(req.params.id)
-    .populate('customer', 'name phone')
+    .populate('customer', 'name phone isGold')
     .populate('movie', 'title')
         .then(rental => res.status(200).send(rental))
         .catch(err => { res.status(404).send(err.message) })
 })
 
 router.post('/', async (req,res) => {
-    try {
         const {error} = validateRental(req.body);
         if(error) return res.status(404).send(error.details[0].message);
         const customer = await Customer.findById(req.body.customer);
@@ -45,14 +39,20 @@ router.post('/', async (req,res) => {
                 movie: req.body.movie
             }
         )
-        const result = await newRental.save();
-        //movie.numberInStock--;
-        //movie.save();
-        if(result) return res.status(201).send(result);
-        } 
-        catch(e) {
-            return res.status(404).send(e.message);
-        }
+        try {
+            new Fawn.Task()
+                .save("rentals", newRental)
+                .update('movies', 
+                    {_id: movie._id}, 
+                    {$inc: {
+                        numberInStock: -1
+                    }
+                })
+                .run();
+            return res.status(201).send(newRental);
+        } catch(e){
+            res.status(500).send('Something failed.')
+        }   
 })
 
 module.exports = router;
