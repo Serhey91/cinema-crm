@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
 
 // router.get('/', async (req,res) => {
 //     let users = await User.find();
-//     if(users) 
+//     if(users)  
 //     users = users.map(user => _.pick(user, ['_id', "name", 'email']))
 //     return res.status(200).send(users)
 // })

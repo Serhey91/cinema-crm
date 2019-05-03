@@ -4,16 +4,14 @@ const Joi = require('joi');
 const {
     User
 } = require('../models/user')
-const mongoose = require('mongoose');
-const _ = require('lodash');
 const bcrypt = require('bcrypt');
-
-
+const jwt = require('jsonwebtoken');
+const config = require('config');
 router.post('/', async (req, res) => {
     const {
         error
-    } = validate(req.body);
-    if (error) return res.status(404).send(error.details[0].message);
+    } = validateAuth(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
     const userWithSuchEmail = await User.findOne({
         email: req.body.email
@@ -23,10 +21,11 @@ router.post('/', async (req, res) => {
     const result = await bcrypt.compare(req.body.password, userWithSuchEmail.password);
     if (!result) return res.status(400).send('Invalid email or password');
 
-    res.send(true)
+    const token = jwt.sign({_id: userWithSuchEmail._id}, config.get("jwtPrivateKey"));
+    res.send(token)
 })
 
-function validate(req) {
+function validateAuth(req) {
     const schema = {
         password: Joi.string().required().min(5).max(100),
         email: Joi.string().required().min(5).max(50).email()
