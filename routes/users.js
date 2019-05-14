@@ -27,13 +27,6 @@ router.post('/', async (req, res) => {
         .send(_.pick(user, ['_id', 'name', 'email']))
 })
 
-// router.get('/', async (req,res) => {
-//     let users = await User.find();
-//     if(users)  
-//     users = users.map(user => _.pick(user, ['_id', "name", 'email']))
-//     return res.status(200).send(users)
-// })
-
 router.get('/user', auth, async (req,res) => {
     const user = await User.findById(req.user._id).select('-password');
     return res.status(200).send(user);
