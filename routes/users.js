@@ -4,7 +4,9 @@ const {User, userSchema, validateUser} = require('../models/user')
 const mongoose = require('mongoose');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
-
+const jwt= require('jsonwebtoken');
+const config = require('config');
+const auth = require('../middleware/auth')
 
 router.post('/', async (req, res) => {
     const {error} = validateUser(req.body);
@@ -18,7 +20,11 @@ router.post('/', async (req, res) => {
     user.password = await bcrypt.hash(user.password, salt);
     await user.save();
     
-    return res.status(201).send(_.pick(user, ['_id', 'name', 'email']))
+    const token = user.generateAuthToken();
+
+    return res.status(201)
+        .header('x-auth-token', token)
+        .send(_.pick(user, ['_id', 'name', 'email']))
 })
 
 // router.get('/', async (req,res) => {
@@ -28,14 +34,9 @@ router.post('/', async (req, res) => {
 //     return res.status(200).send(users)
 // })
 
-// router.get('/:id', async (req,res) => {
-//     try {
-//         const user = await User.findById(req.params.id);
-//         if(user) return res.status(200).send(_.pick(user, ['_id', 'name', 'email']));
-//         else return res.status(404).send('No user with such id find in DB')
-//     } catch (e) {
-//         return res.status(404).send(e.message)
-//     }
-// })
+router.get('/user', auth, async (req,res) => {
+    const user = await User.findById(req.user._id).select('-password');
+    return res.status(200).send(user);
+})
 
 module.exports = router;
